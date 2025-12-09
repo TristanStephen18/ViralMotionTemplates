@@ -322,6 +322,7 @@ export const isVideoLayer = (l: Layer): l is VideoLayer => l.type === "video";
 
 export interface DynamicCompositionProps {
   layers: Layer[];
+  duration?:number;
   backgroundColor?: string;
   editingLayerId?: string | null;
   templateId?: number;
