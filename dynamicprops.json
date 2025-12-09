@@ -1,0 +1,48 @@
+{
+  "config": {
+    "layers": [
+      {
+        "id": "bg-1",
+        "name": "Background",
+        "type": "image",
+        "visible": true,
+        "locked": false,
+        "startFrame": 0,
+        "endFrame": 300,
+        "position": { "x": 50, "y": 50 },
+        "size": { "width": 100, "height": 100 },
+        "rotation": 0,
+        "opacity": 1,
+        "src": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920",
+        "isBackground": true,
+        "objectFit": "cover"
+      },
+      {
+        "id": "text-1",
+        "name": "Title",
+        "type": "text",
+        "visible": true,
+        "locked": false,
+        "startFrame": 30,
+        "endFrame": 300,
+        "position": { "x": 50, "y": 30 },
+        "size": { "width": 80, "height": 20 },
+        "rotation": 0,
+        "opacity": 1,
+        "content": "Hello World",
+        "fontFamily": "Luckiest Guy",
+        "fontSize": 10,
+        "fontColor": "#ffffff",
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "lineHeight": 1.2,
+        "animation": {
+          "entrance": "slideUp",
+          "entranceDuration": 30
+        }
+      }
+    ],
+    "backgroundColor": "#000000"
+  }
+}
