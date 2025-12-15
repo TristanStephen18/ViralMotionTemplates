@@ -303,6 +303,10 @@ export interface ChatBubbleLayer extends LayerBase {
   avatarUrl?: string;
   senderName?: string;
   isTyping?: boolean;
+
+  avatarScale?: number;
+  bubbleFontSize?: number;
+  fontFamily?: string;
 }
 
 export type Layer =
@@ -322,21 +326,20 @@ export const isVideoLayer = (l: Layer): l is VideoLayer => l.type === "video";
 
 export interface DynamicCompositionProps {
   layers: Layer[];
-  duration?:number;
   backgroundColor?: string;
   editingLayerId?: string | null;
   templateId?: number;
 }
 
 export interface CropData {
-  x: number; // Left position as percentage (0-100)
-  y: number; // Top position as percentage (0-100)
-  width: number; // Width as percentage (0-100)
-  height: number; // Height as percentage (0-100)
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 // ============================================================================
-// ICONS & UI ASSETS (MASSIVE SCALE UP)
+// ICONS & UI ASSETS
 // ============================================================================
 
 const Icons = {
@@ -510,7 +513,7 @@ const Icons = {
     </svg>
   ),
 
-  // Instagram (SCALED UP)
+  // Instagram
   BackArrowBlack: () => (
     <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
       <path
@@ -794,13 +797,11 @@ const KenBurnsCarouselRenderer: React.FC<{
     [layers.length]
   );
 
-  // Find current and next layers based on frame timing
   let currentLayer: (ImageLayer | VideoLayer) | null = null;
   let nextLayer: (ImageLayer | VideoLayer) | null = null;
   let currentIndex = -1;
   let nextIndex = -1;
 
-  // Find the current layer (the one that's fully visible or transitioning out)
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
     if (frame >= layer.startFrame && frame <= layer.endFrame) {
@@ -808,7 +809,6 @@ const KenBurnsCarouselRenderer: React.FC<{
         currentLayer = layer;
         currentIndex = i;
       } else {
-        // If we already have a current layer, this must be the next one (during overlap)
         nextLayer = layer;
         nextIndex = i;
         break;
@@ -816,25 +816,14 @@ const KenBurnsCarouselRenderer: React.FC<{
     }
   }
 
-  // DEBUG: Log detection results every 30 frames
-  if (frame % 30 === 0) {
-    console.log(
-      `Frame ${frame}: Current=${currentLayer?.name} (idx:${currentIndex}), Next=${nextLayer?.name} (idx:${nextIndex})`
-    );
-  }
-
-  // If no current layer found, use the last one
   if (!currentLayer && layers.length > 0) {
     currentIndex = layers.length - 1;
     currentLayer = layers[currentIndex];
   }
 
-  // Calculate transition progress
   let slideProgress = 0;
   if (currentLayer && nextLayer && frame >= nextLayer.startFrame) {
-    // We're in the transition period (overlap between layers)
     const transitionStart = nextLayer.startFrame;
-
     const transitionFrame = frame - transitionStart;
     const springValue = spring({
       frame: transitionFrame,
@@ -848,14 +837,10 @@ const KenBurnsCarouselRenderer: React.FC<{
     });
   }
 
-  // Calculate Ken Burns animation progress for current layer
   let kbProgress = 0;
   if (currentLayer) {
     const layerDuration = currentLayer.endFrame - currentLayer.startFrame;
     const layerFrame = frame - currentLayer.startFrame;
-
-    // If we're in a transition, use the progress up to the transition start
-    // Simple, clean logic
     kbProgress = interpolate(layerFrame, [0, layerDuration], [0, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
@@ -1004,7 +989,6 @@ const ChatInterface: React.FC<{
   name: string;
   avatar?: string;
 }> = ({ style, name, avatar }) => {
-  // Safe zone offsets for modern phones (Notch & Home Bar)
   const paddingTop = "40px";
 
   const overlayStyle: React.CSSProperties = {
@@ -1012,20 +996,20 @@ const ChatInterface: React.FC<{
     left: 0,
     right: 0,
     zIndex: 100,
-    pointerEvents: "none", // Click-through
+    pointerEvents: "none",
   };
 
   const headerStyle: React.CSSProperties = {
     ...overlayStyle,
     top: 0,
-    height: "200px", // SIGNIFICANTLY INCREASED
+    height: "200px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "flex-end",
-    padding: `0 35px 25px 35px`, // Increased Padding
+    padding: `0 35px 25px 35px`,
     background:
       style === "imessage"
-        ? "rgba(242, 242, 247, 0.95)" // iOS System Grey
+        ? "rgba(242, 242, 247, 0.95)"
         : style === "whatsapp"
         ? "#008069"
         : style === "instagram"
@@ -1045,15 +1029,14 @@ const ChatInterface: React.FC<{
   const footerStyle: React.CSSProperties = {
     ...overlayStyle,
     bottom: 0,
-    height: "240px", // SIGNIFICANTLY INCREASED
+    height: "240px",
     background: style === "whatsapp" ? "#ffffff" : "#ffffff",
     display: "flex",
     alignItems: "flex-start",
-    padding: "40px 30px", // Increased Padding
+    padding: "40px 30px",
     borderTop: style === "messenger" ? "none" : "1px solid #E5E5EA",
   };
 
-  // --- HEADER CONTENT (BIGGER) ---
   const renderHeader = () => {
     const displayAvatar =
       avatar ||
@@ -1222,7 +1205,6 @@ const ChatInterface: React.FC<{
         </div>
       );
     }
-    // Messenger
     return (
       <div
         style={{
@@ -1269,7 +1251,6 @@ const ChatInterface: React.FC<{
     );
   };
 
-  // --- FOOTER CONTENT (BIGGER) ---
   const renderFooter = () => {
     if (style === "imessage") {
       return (
@@ -1399,7 +1380,6 @@ const ChatInterface: React.FC<{
         </div>
       );
     }
-    // Messenger
     return (
       <div
         style={{
@@ -1448,58 +1428,67 @@ const ChatBubbleComponent: React.FC<{
   layer: ChatBubbleLayer;
   relativeFrame: number;
   fps: number;
-}> = ({ layer, relativeFrame, fps }) => {
+}> = ({ layer, relativeFrame, fps}) => {
   const entrance = getEntranceAnimation(layer, relativeFrame, fps);
-
   const rotation = layer.rotation || 0;
+
+  const defaultFont = layer.chatStyle === "imessage"
+      ? "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
+      : "Helvetica, Arial, sans-serif";
+
+  const activeFontFamily = layer.fontFamily || defaultFont;
   
   const containerStyle: React.CSSProperties = {
     position: "absolute",
-    ...(layer.isSender 
-      ? { right: "1%" } 
-      : { left: "1%" }    
-    ),
+    left: `${layer.position.x}%`, 
     top: `${layer.position.y}%`,
-    width: "auto",
-    maxWidth: "75%",
-    transform: `translateY(-50%) rotate(${rotation}deg) ${entrance.transform}`,
+    width: `${layer.size.width}%`,
+    
+    height: "auto", 
+    minHeight: "0px",
+    
+    transform: `translate(-50%, -50%) rotate(${rotation}deg) ${entrance.transform}`,
     opacity: layer.opacity * entrance.opacity,
     display: "flex",
     flexDirection: layer.isSender ? "row-reverse" : "row",
-    alignItems: "flex-end",
-    gap: "14px",
-    padding: "0 35px", // Moved Inward: Added padding to ensure bubbles don't touch edges
-    fontFamily:
-      layer.chatStyle === "imessage"
-        ? "-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif"
-        : "Helvetica, Arial, sans-serif",
-    boxSizing: "border-box", // Important for padding
+    alignItems: "flex-end", 
+    justifyContent: "flex-start",
+    fontFamily: activeFontFamily,
+    boxSizing: "border-box",
+    padding: "0", 
   };
 
-  // Avatar Logic
   const showAvatar =
     !layer.isSender &&
     (layer.chatStyle === "messenger" || layer.chatStyle === "instagram");
+    
   const avatarStyle: React.CSSProperties = {
-    width: "65px", // Increased size
-    height: "65px",
+    width: `${Math.min(layer.size.height, 65)}px`, 
+    height: `${Math.min(layer.size.height, 65)}px`,
     borderRadius: "50%",
     objectFit: "cover",
     flexShrink: 0,
-    marginBottom: "4px",
+    marginLeft: layer.isSender ? "8px" : "0",
+    marginRight: layer.isSender ? "0" : "8px",
   };
 
   let bubbleStyle: React.CSSProperties = {
-    maxWidth: "70%", // Decreased Width: Keeps bubbles away from edges
-    padding: "20px 32px",
-    fontSize: "32px",
-    lineHeight: "1.35",
+    maxWidth: "80%", 
+    width: "fit-content",
+    height: "auto",
+    // minHeight: "100%",
+    display: "flex",
+    alignItems: "center",
+    padding: "12px 20px", 
+    fontSize: `${layer.bubbleFontSize || 30}px`, 
+    lineHeight: "1.2",
     position: "relative",
     wordWrap: "break-word",
+    wordBreak: "break-word",
     whiteSpace: "pre-wrap",
+    boxSizing: "border-box",
   };
 
-  // --- iMessage ---
   if (layer.chatStyle === "imessage") {
     bubbleStyle = {
       ...bubbleStyle,
@@ -1513,11 +1502,10 @@ const ChatBubbleComponent: React.FC<{
       borderBottomRightRadius: layer.isSender ? "6px" : "32px",
       borderBottomLeftRadius: layer.isSender ? "32px" : "6px",
     };
-  }
-  // --- WhatsApp ---
-  else if (layer.chatStyle === "whatsapp") {
+  } else if (layer.chatStyle === "whatsapp") {
     bubbleStyle = {
       ...bubbleStyle,
+      display: "block", 
       borderRadius: "18px",
       padding: "16px 24px",
       backgroundColor: layer.isSender ? "#E7FFDB" : "#FFFFFF",
@@ -1527,20 +1515,16 @@ const ChatBubbleComponent: React.FC<{
       borderTopLeftRadius: layer.isSender ? "18px" : "0px",
       borderTopRightRadius: layer.isSender ? "0px" : "18px",
     };
-  }
-  // --- Instagram ---
-  else if (layer.chatStyle === "instagram") {
+  } else if (layer.chatStyle === "instagram") {
     bubbleStyle = {
       ...bubbleStyle,
-      borderRadius: "44px", // Rounder
+      borderRadius: "44px",
       padding: "24px 34px",
       backgroundColor: layer.isSender ? "#EFEFEF" : "#FFFFFF",
       border: layer.isSender ? "none" : "1px solid #dbdbdb",
       color: "#000000",
     };
-  }
-  // --- Messenger ---
-  else if (layer.chatStyle === "messenger") {
+  } else if (layer.chatStyle === "messenger") {
     bubbleStyle = {
       ...bubbleStyle,
       borderRadius: "32px",
@@ -1548,15 +1532,16 @@ const ChatBubbleComponent: React.FC<{
       backgroundColor: layer.isSender ? "#0084FF" : "#E4E6EB",
       color: layer.isSender ? "#FFFFFF" : "#050505",
     };
-  }
-  // --- FakeChatConversation ---
-  else if (layer.chatStyle === "fakechatconversation") {
-    const AVATAR_SIZE = 80;
+  } else if (layer.chatStyle === "fakechatconversation") {
+    const avatarScale = layer.avatarScale || 1.0;
+    const AVATAR_SIZE = 80 * avatarScale ;
+    const baseFontSize = layer.bubbleFontSize || 30;
+    const fontSize = baseFontSize || 32;
+
     const message = layer.message || "";
-    const baseDuration = message.length * 0.08; // Slower base speed (80ms per char)
-    const typeDur = Math.max(1.5, Math.min(baseDuration, 5)); // 1.5-5 seconds range
+    const baseDuration = message.length * 0.08;
+    const typeDur = Math.max(1.5, Math.min(baseDuration, 5));
     const rawProgress = relativeFrame / (typeDur * fps);
-    // Add slight easing for more natural typing
     const typingProgress = Math.min(
       rawProgress * (1 + Math.sin(rawProgress * Math.PI) * 0.1),
       1
@@ -1575,29 +1560,33 @@ const ChatBubbleComponent: React.FC<{
           position: "absolute",
           left: `${layer.position.x}%`,
           top: `${layer.position.y}%`,
+          width: `${layer.size.width}%`, 
+          minHeight: `${layer.size.height}%`, 
           transform: `translate(-50%, -50%) rotate(${rotation}deg) ${entrance.transform}`,
-          width: "90%",
           display: "flex",
           flexDirection: layer.isSender ? "row-reverse" : "row",
           alignItems: "flex-end",
           gap: 18,
           opacity: layer.opacity * entrance.opacity,
-          padding: "0 36px",
+          padding: "0",
         }}
       >
-        {/* Avatar */}
         <div
-          style={{
-            width: AVATAR_SIZE,
-            height: AVATAR_SIZE,
-            borderRadius: AVATAR_SIZE / 2,
-            overflow: "hidden",
-            border: `4px solid ${avatarColor}`,
-            backgroundColor: "#fff",
-            flexShrink: 0,
-            boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-          }}
-        >
+            style={{
+              width: AVATAR_SIZE,
+              height: AVATAR_SIZE,
+              minWidth: AVATAR_SIZE,
+              minHeight: AVATAR_SIZE,
+              aspectRatio: "1 / 1",
+              borderRadius: "50%",
+              flex: "0 0 auto", 
+              
+              overflow: "hidden",
+              border: `4px solid ${avatarColor}`,
+              backgroundColor: "#fff",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+            }}
+          >
           {layer.avatarUrl ? (
             <img
               src={layer.avatarUrl}
@@ -1615,15 +1604,15 @@ const ChatBubbleComponent: React.FC<{
           )}
         </div>
 
-        {/* Bubble */}
         <div
           style={{
+            width: "fit-content",
             maxWidth: "80%",
             backgroundColor: bubbleColor,
             color: textColor,
             borderRadius: 28,
             padding: "20px 28px",
-            fontSize: 30,
+            fontSize: fontSize,
             lineHeight: 1.6,
             fontFamily:
               '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -1631,10 +1620,11 @@ const ChatBubbleComponent: React.FC<{
             boxShadow: "0 8px 22px rgba(0,0,0,0.18)",
             position: "relative",
             whiteSpace: "pre-wrap",
+            wordWrap: "break-word",
+              wordBreak: "break-word",
           }}
         >
           {layer.isTyping ? (
-            // Show animated typing dots for "isTyping" bubbles
             <div
               style={{
                 display: "flex",
@@ -1681,7 +1671,6 @@ const ChatBubbleComponent: React.FC<{
               )}
             </>
           )}
-          {/* Tail */}
           <div
             style={{
               position: "absolute",
@@ -1753,7 +1742,6 @@ const ChatBubbleComponent: React.FC<{
         ) : (
           <>
             {layer.message}
-            {/* WhatsApp Metadata */}
             {layer.chatStyle === "whatsapp" && (
               <div
                 style={{
@@ -1810,33 +1798,12 @@ const TextLayerComponent: React.FC<{
   const words = layer.content.split(/\s+/).filter(Boolean);
   const rotation = layer.rotation || 0;
 
-  // Helper function to check if a word should be highlighted
   const shouldHighlight = (word: string): boolean => {
     if (!layer.highlightWords || layer.highlightWords.length === 0)
       return false;
     const cleanWord = word.toLowerCase().replace(/[.,!?;:'"]/g, "");
-    const isHighlighted = layer.highlightWords.some(
-      (hw) => hw.toLowerCase() === cleanWord
-    );
-
-    // Debug logging (remove after testing)
-    if (isHighlighted) {
-      console.log(
-        `Word "${word}" (cleaned: "${cleanWord}") matched in:`,
-        layer.highlightWords
-      );
-    }
-
-    return isHighlighted;
+    return layer.highlightWords.some((hw) => hw.toLowerCase() === cleanWord);
   };
-
-  // Debug: Log highlight words when they exist
-  if (layer.highlightWords && layer.highlightWords.length > 0) {
-    console.log(
-      "TextLayer rendering with highlightWords:",
-      layer.highlightWords
-    );
-  }
 
   const highlightColor = layer.highlightColor || "rgba(255, 215, 0, 0.4)";
   const hasHighlights = layer.highlightWords && layer.highlightWords.length > 0;
@@ -1863,6 +1830,7 @@ const TextLayerComponent: React.FC<{
           : "none",
         transform: `rotate(${rotation}deg) ${entrance.transform}`,
         transformOrigin: "center center",
+        opacity: layer.opacity * entrance.opacity,
         whiteSpace: "pre-wrap",
         wordWrap: "break-word",
         overflowWrap: "break-word",
@@ -2005,7 +1973,6 @@ const VideoLayerComponent: React.FC<{
     </div>
   );
 };
-
 // ============================================================================
 // MAIN COMPOSITION
 // ============================================================================
@@ -2019,13 +1986,11 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
 
-  // Active Chat State Finding
   const firstChatLayer = layers.find(isChatBubbleLayer);
   const activeChatStyle = firstChatLayer ? firstChatLayer.chatStyle : null;
   const chatName = firstChatLayer?.senderName || "User";
   const chatAvatar = firstChatLayer?.avatarUrl;
 
-  // Background Logic
   const getChatBackground = (style: ChatStyle | null) => {
     if (!style) return backgroundColor;
     switch (style) {
@@ -2050,7 +2015,6 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
       : backgroundColor;
 
   // Ken Burns Template State
-  // Ken Burns Template State
   const kenBurnsLayers =
     templateId === 8
       ? (layers.filter(
@@ -2063,41 +2027,17 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
         ) as (ImageLayer | VideoLayer)[])
       : [];
 
-  // DEBUG: Log all layers and filtered layers
-  if (templateId === 8 && frame % 30 === 0) {
-    console.log("=== ALL LAYERS ===");
-    console.log("Total layers:", layers.length);
-    layers.forEach((l, i) => {
-      console.log(`Layer ${i}:`, {
-        id: l.id,
-        name: l.name,
-        type: l.type,
-        isBackground: (l as ImageLayer).isBackground,
-        startFrame: l.startFrame,
-        endFrame: l.endFrame,
-        visible: l.visible,
-      });
-    });
-    console.log("=== FILTERED KENBURNS LAYERS ===");
-    console.log("Ken Burns layers count:", kenBurnsLayers.length);
-    kenBurnsLayers.forEach((l, i) => {
-      console.log(`KB Layer ${i}:`, {
-        name: l.name,
-        src: l.src.substring(0, 50),
-        startFrame: l.startFrame,
-        endFrame: l.endFrame,
-      });
-    });
-  }
-
   // Render Layers
   const visibleLayers = layers
     .map((layer, index) => ({ layer, originalIndex: index }))
     .filter(({ layer }) => {
       if (!layer.visible) return false;
       if (layer.id === editingLayerId) return false;
-      // Hide chat-bg for non-fakechatconversation styles
-      if ((layer as any).id === 'chat-bg' && activeChatStyle !== 'fakechatconversation') return false;
+      if (
+        (layer as any).id === "chat-bg" &&
+        activeChatStyle !== "fakechatconversation"
+      )
+        return false;
       return frame >= layer.startFrame && frame <= layer.endFrame;
     })
     .sort((a, b) => {
@@ -2106,29 +2046,99 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
       return a.originalIndex - b.originalIndex;
     });
 
+  // ✅ Filter for non-media layers (text, chat, audio) for Template 8
+  const nonMediaLayers =
+    templateId === 8
+      ? visibleLayers.filter(
+          ({ layer }) =>
+            layer.type === "text" ||
+            layer.type === "chat-bubble" ||
+            layer.type === "audio"
+        )
+      : [];
+
+  // 🔍 DEBUG LOGGING
+  if (templateId === 8 && frame % 30 === 0) {
+    console.log("🎬 Template 8 Rendering - Frame:", frame);
+    console.log("📊 Total visible layers:", visibleLayers.length);
+    console.log("📝 Non-media layers (text/emoji):", nonMediaLayers.length);
+    nonMediaLayers.forEach(({ layer }) => {
+      console.log(`  - ${layer.type}: ${layer.name} (${layer.startFrame}-${layer.endFrame})`);
+    });
+  }
+
   return (
     <AbsoluteFill style={{ background: currentBackground }}>
-      {/* Ken Burns Carousel (Template 8) */}
+      {/* Ken Burns Carousel (Template 8) - z-index: 1 */}
       {templateId === 8 && kenBurnsLayers.length > 0 && !editingLayerId && (
-        <KenBurnsCarouselRenderer
-          layers={kenBurnsLayers}
-          frame={frame}
-          fps={fps}
-          width={width}
-          height={height}
-        />
+        <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+          <KenBurnsCarouselRenderer
+            layers={kenBurnsLayers}
+            frame={frame}
+            fps={fps}
+            width={width}
+            height={height}
+          />
+        </div>
       )}
 
-      {/* Normal Layer Rendering (All templates except 8) */}
+      {/* ✅ Text/Emoji/Chat layers ON TOP - z-index: 100 */}
+      {templateId === 8 &&
+        !editingLayerId &&
+        nonMediaLayers.length > 0 && (
+          <div style={{ position: "absolute", inset: 0, zIndex: 100, pointerEvents: "none" }}>
+            {nonMediaLayers.map(({ layer }) => {
+              const relativeFrame = Math.max(0, frame - layer.startFrame);
+
+              // 🔍 DEBUG: Log when rendering text
+              if (isTextLayer(layer) && frame % 30 === 0) {
+                console.log("✏️ Rendering text layer:", layer.name, {
+                  position: layer.position,
+                  size: layer.size,
+                  content: layer.content,
+                  opacity: layer.opacity,
+                });
+              }
+
+              if (isTextLayer(layer)) {
+                return (
+                  <TextLayerComponent
+                    key={layer.id}
+                    layer={layer}
+                    relativeFrame={relativeFrame}
+                    fps={fps}
+                    width={width}
+                    height={height}
+                  />
+                );
+              }
+              if (isChatBubbleLayer(layer)) {
+                return (
+                  <ChatBubbleComponent
+                    key={layer.id}
+                    layer={layer}
+                    relativeFrame={relativeFrame}
+                    fps={fps}
+                  />
+                );
+              }
+              return null;
+            })}
+          </div>
+        )}
+
+      {/* Normal Layer Rendering (All other templates OR editing mode) */}
       {(templateId !== 8 || editingLayerId) &&
         visibleLayers.map(({ layer }) => {
           const relativeFrame = Math.max(0, frame - layer.startFrame);
 
-          // Hide background video for non-fakechatconversation styles
-         // Hide background media layer for non-fakechatconversation styles
-        if ((isVideoLayer(layer) || isImageLayer(layer)) && layer.id === 'chat-bg' && activeChatStyle !== 'fakechatconversation') {
-          return null;
-        }
+          if (
+            (isVideoLayer(layer) || isImageLayer(layer)) &&
+            layer.id === "chat-bg" &&
+            activeChatStyle !== "fakechatconversation"
+          ) {
+            return null;
+          }
 
           if (isImageLayer(layer))
             return (
@@ -2171,7 +2181,7 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
           return null;
         })}
 
-      {/* Chat Interface Overlay (iMessage, WhatsApp, Instagram, Messenger ONLY) */}
+      {/* Chat Interface Overlay */}
       {(templateId === 9 || activeChatStyle) &&
         activeChatStyle &&
         activeChatStyle !== "fakechatconversation" && (
@@ -2181,6 +2191,7 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
             avatar={chatAvatar}
           />
         )}
+
       {/* Audio Layers (All templates) */}
       {layers
         .filter(
@@ -2201,13 +2212,6 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
         ))}
     </AbsoluteFill>
   );
-};
-
-
-export const DynamicTemplate: React.FC<{
-  config: DynamicCompositionProps;
-}> = ({ config }) => {
-  return <DynamicLayerComposition {...config} />;
 };
 
 export default DynamicLayerComposition;
