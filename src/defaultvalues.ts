@@ -24,12 +24,12 @@ const logoanimationdefaultvalues: LogoLiquidOverlayProps = {
 };
 
 const quoetTemplateDefaultValues = {
-  quote: "Your Quote",
-  author: "Author",
+  quote: "Coincidence is God's way of remaining anonymous.",
+  author: "Albert Einstein",
   backgroundImage:
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760979564/bg12_z53lpr.jpg",
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766926352/969px-Albert_Einstein_Head_cleaned_tagn7n.jpg",
   fontFamily: "Arial, sans-serif",
-  fontSize: 1,
+  fontSize: 0.7,
   fontColor: "white",
 };
 
@@ -42,7 +42,7 @@ const storyTellingDefaultValues = {
   fontColor: "#ffffff",
   sentenceBgColor: "#ff8c00",
   backgroundVideo:
-    "https://res.cloudinary.com/dnxc1lw18/video/upload/v1760964407/m7_jrjns5.mp4",
+    "https://res.cloudinary.com/dfr01aiia/video/upload/v1766926343/m2_ek9s7x.mp4",
   backgroundMusicPath:
     "https://rsnemknhybirnaxoffur.supabase.co/storage/v1/object/public/Remotion%20Web%20App%20file%20bucket/bgmusics/bg3.mp3",
   script: {
@@ -852,7 +852,7 @@ const redditDefaultValues = {
   fontColor: "#ffffff",
   sentenceBgColor: "#ff8c00",
   backgroundVideo:
-    "https://res.cloudinary.com/dnxc1lw18/video/upload/v1760964409/m8_jttvu0.mp4",
+    "https://res.cloudinary.com/dfr01aiia/video/upload/v1766926343/m2_ek9s7x.mp4",
   backgroundMusicPath:
     "https://rsnemknhybirnaxoffur.supabase.co/storage/v1/object/public/Remotion%20Web%20App%20file%20bucket/bgmusics/bg11.mp3",
 };
@@ -872,22 +872,22 @@ const splitScreenDefaultValues = {
   bottomHeightPercent: 50,
   bottomOpacity: 1,
   bottomVideoUrl:
-    "https://res.cloudinary.com/dnxc1lw18/video/upload/v1760964408/m5_ktreoe.mp4",
+    "https://res.cloudinary.com/dfr01aiia/video/upload/v1766926343/m2_ek9s7x.mp4",
   bottomVolume: 0,
   swap: false,
   topHeightPercent: 50,
   topOpacity: 1,
   topVideoUrl:
-    "https://res.cloudinary.com/dnxc1lw18/video/upload/v1761069726/videos/video_8b31ce65-c80a-4864-8d75-390056969637.mp4",
+    "https://res.cloudinary.com/dfr01aiia/video/upload/v1766934272/Funniest_5_Second_Video_Ever_m37oax.mp4",
   topVolume: 1,
   duration: 4,
 };
 
 const kenburnsDefaultValues = {
   images: [
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760980834/bg19_geq7pm.jpg",
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760980834/bg16_awol1q.jpg",
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760980833/bg18_hsnzjc.jpg"
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766927694/artist_in_a_art_art_all_the_way_ehjfrq.jpg",
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766927695/40_Adorable_Anime_iPad_Wallpapers_You_Need_to_See_acm0ph.jpg",
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766927695/download_1_wldihg.jpg"
   ],
   cardWidthRatio: 0.75,
   cardHeightRatio: 0.75,
@@ -919,7 +919,7 @@ const fakeTextDefaultValues = {
     ],
   },
   bgVideo:
-    "https://res.cloudinary.com/dnxc1lw18/video/upload/v1760964769/ss4_yvpblt.mp4",
+    "https://res.cloudinary.com/dfr01aiia/video/upload/v1766926343/m2_ek9s7x.mp4",
   chatAudio:
     "https://rsnemknhybirnaxoffur.supabase.co/storage/v1/object/public/Remotion%20Web%20App%20file%20bucket/audios/fakeconvo/fakeconvo-1761133080579.mp3",
   musicAudio:
@@ -934,9 +934,9 @@ const fakeTextDefaultValues = {
   fontColor: "",
   chatTheme: "discord",
   avatars: {
-    left: "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760977048/v7_njhvnm.avif",
+    left: "https://res.cloudinary.com/dfr01aiia/image/upload/v1766925954/main-sample.png",
     right:
-      "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760977048/v10_lzbfv0.jpg",
+      "https://res.cloudinary.com/dfr01aiia/image/upload/v1766927917/james-person-1_pzp4aq.jpg",
   },
 };
 
@@ -1192,7 +1192,7 @@ const facstCardDefaultValues = {
     },
   ],
   backgroundImage:
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760979564/bg12_z53lpr.jpg",
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766926410/0cb46fc064b18cede98279089d39e19b_ro0iqa.jpg",
   fontSizeTitle: 68,
   fontSizeSubtitle: 49,
   fontFamilyTitle: "Arial, sans-serif",
@@ -1204,7 +1204,7 @@ const facstCardDefaultValues = {
 
 const kpiFlipCardsDefaultValues = {
   backgroundImage:
-    "https://res.cloudinary.com/dnxc1lw18/image/upload/v1760979562/bg6_mtqtio.jpg",
+    "https://res.cloudinary.com/dfr01aiia/image/upload/v1766925953/cld-sample-2.jpg",
   title: "Revenue Over Years",
   titleFontSize: 93,
   titleFontColor: "pink",

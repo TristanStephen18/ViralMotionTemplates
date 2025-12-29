@@ -258,15 +258,35 @@ export interface TextLayer extends LayerBase {
   shadowBlur?: number;
   highlightWords?: string[];
   highlightColor?: string;
+  textBend?: number;
 }
 
 export interface ImageLayer extends LayerBase {
   type: "image";
   src: string;
   isBackground?: boolean;
+  gradient?: string;
   objectFit?: "cover" | "contain" | "fill";
   filter?: string;
   crop?: CropData;
+  borderWidth?: number;
+borderRadius?: number;
+borderColor?: string;
+adjustments?: {
+    brightness?: number;
+    contrast?: number;
+    saturation?: number;
+    temperature?: number;
+    tint?: number;
+    fade?: number;
+    highlights?: number;
+    shadows?: number;
+    vignette?: number;
+    blur?: number;
+  };
+    flipX?: boolean;
+    flipY?: boolean;
+    eraserMask?: string;
 }
 
 export interface AudioLayer extends LayerBase {
@@ -288,6 +308,23 @@ export interface VideoLayer extends LayerBase {
   filter?: string;
   fadeIn?: number;
   fadeOut?: number;
+  borderWidth?: number;
+borderRadius?: number;
+borderColor?: string;
+flipX?: boolean;
+  flipY?: boolean;
+adjustments?: {
+    brightness?: number;
+    contrast?: number;
+    saturation?: number;
+    temperature?: number;
+    tint?: number;
+    fade?: number;
+    highlights?: number;
+    shadows?: number;
+    vignette?: number;
+    blur?: number;
+  };
 }
 
 export type ChatStyle =
@@ -311,12 +348,81 @@ export interface ChatBubbleLayer extends LayerBase {
   fontFamily?: string;
 }
 
-export type Layer =
-  | TextLayer
-  | ImageLayer
-  | AudioLayer
-  | VideoLayer
-  | ChatBubbleLayer;
+export interface RedditCardLayer {
+  id: string;
+  type: "reddit-card";
+  name: string;
+  startFrame: number;
+  endFrame: number;
+  visible: boolean;
+  locked: boolean;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  rotation?: number;
+  opacity?: number;
+  animation?: {
+    entrance?: string;
+    entranceDuration?: number;
+    exit?: string;
+    exitDuration?: number;
+  };
+  // Reddit-specific
+  subredditName: string;
+  posterUsername: string;
+  timePosted: string;
+  upvotes: string;
+  commentCount: string;
+  awardsCount: string;
+  avatarUrl: string;
+  title: string;
+  text: string;
+  titleFontSize?: number;
+  textFontSize?: number;
+  displayDuration?: number;
+  headerFontSize?: number;
+  metricsFontSize?: number;
+  titleMaxLength?: number;
+  textMaxLength?: number;
+}
+
+export interface RedditStoryLayer {
+  id: string;
+  type: "reddit-story";
+  name: string;
+  startFrame: number;
+  endFrame: number;
+  visible: boolean;
+  locked: boolean;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  rotation?: number;
+  opacity?: number;
+  animation?: {
+    entrance?: string;
+    entranceDuration?: number;
+    exit?: string;
+    exitDuration?: number;
+  };
+  // Story-specific
+  fontSize: number;
+  fontFamily: string;
+  fontColor: string;
+  sentenceBgColor: string;
+  story: string;
+  words: { word: string; start: number; end: number }[];
+}
+
+
+export function isRedditCardLayer(layer: Layer): layer is RedditCardLayer {
+  return layer.type === "reddit-card";
+}
+
+export function isRedditStoryLayer(layer: Layer): layer is RedditStoryLayer {
+  return layer.type === "reddit-story";
+}
+
+
+export type Layer = TextLayer | ImageLayer | AudioLayer | VideoLayer | ChatBubbleLayer | RedditCardLayer | RedditStoryLayer;
 
 // Type Guards
 export const isChatBubbleLayer = (l: Layer): l is ChatBubbleLayer =>
@@ -331,6 +437,7 @@ export interface DynamicCompositionProps {
   backgroundColor?: string;
   editingLayerId?: string | null;
   templateId?: number;
+  duration?: number; 
 }
 
 export interface CropData {
@@ -1553,7 +1660,6 @@ const ChatBubbleComponent: React.FC<{
     );
     const charsToShow = Math.floor(message.length * typingProgress);
     const visibleText = message.slice(0, charsToShow);
-    const isTyping = typingProgress < 1;
 
     const bubbleColor = layer.isSender ? "#0EA5E9" : "#E5E5EA";
     const textColor = layer.isSender ? "#fff" : "#000";
@@ -1563,17 +1669,17 @@ const ChatBubbleComponent: React.FC<{
       <div
         style={{
           position: "absolute",
-          left: `${layer.position.x}%`,
+          left: layer.isSender ? 'auto' : `${layer.position.x}%`,
+          right: layer.isSender ? `${100 - layer.position.x}%` : 'auto',
           top: `${layer.position.y}%`,
-          width: `${layer.size.width}%`, 
-          minHeight: `${layer.size.height}%`, 
-          transform: `translate(-50%, -50%) rotate(${rotation}deg) ${entrance.transform}`,
+          transform: entrance.transform,
           display: "flex",
           flexDirection: layer.isSender ? "row-reverse" : "row",
           alignItems: "flex-end",
           gap: 18,
-          opacity: layer.opacity * entrance.opacity,
-          padding: "0",
+          opacity: entrance.opacity,
+          width: "max-content",
+          maxWidth: "80%",
         }}
       >
         <div
@@ -1582,10 +1688,8 @@ const ChatBubbleComponent: React.FC<{
               height: AVATAR_SIZE,
               minWidth: AVATAR_SIZE,
               minHeight: AVATAR_SIZE,
-              aspectRatio: "1 / 1",
+              flexShrink: 0,
               borderRadius: "50%",
-              flex: "0 0 auto", 
-              
               overflow: "hidden",
               border: `4px solid ${avatarColor}`,
               backgroundColor: "#fff",
@@ -1596,7 +1700,7 @@ const ChatBubbleComponent: React.FC<{
             <img
               src={layer.avatarUrl}
               alt={layer.senderName || "Avatar"}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }}
             />
           ) : (
             <div
@@ -1604,6 +1708,7 @@ const ChatBubbleComponent: React.FC<{
                 width: "100%",
                 height: "100%",
                 background: avatarColor,
+                borderRadius: "50%",
               }}
             />
           )}
@@ -1611,8 +1716,8 @@ const ChatBubbleComponent: React.FC<{
 
         <div
           style={{
-            width: "fit-content",
-            maxWidth: "80%",
+            minWidth: 200,
+            maxWidth: 450,
             backgroundColor: bubbleColor,
             color: textColor,
             borderRadius: 28,
@@ -1628,53 +1733,7 @@ const ChatBubbleComponent: React.FC<{
               wordBreak: "break-word",
           }}
         >
-          {layer.isTyping ? (
-            <div
-              style={{
-                display: "flex",
-                gap: "5px",
-                padding: "10px 0",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: "32px",
-                    height: "32px",
-                    borderRadius: "50%",
-                    backgroundColor: textColor,
-                    animation: `typingBounce 1.4s infinite ease-in-out both`,
-                    animationDelay: `${i * 0.16}s`,
-                  }}
-                />
-              ))}
-              <style>{`
-                @keyframes typingBounce { 
-                  0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; } 
-                  40% { transform: scale(1); opacity: 1; } 
-                }
-              `}</style>
-            </div>
-          ) : (
-            <>
-              <span>{visibleText}</span>
-              {isTyping && (
-                <span
-                  style={{
-                    display: "inline-block",
-                    width: 12,
-                    marginLeft: 4,
-                    borderBottom: `3px solid ${textColor}`,
-                    animation: "blink 1s step-end infinite",
-                    transform: "translateY(-2px)",
-                  }}
-                />
-              )}
-            </>
-          )}
+          <span>{visibleText}</span>
           <div
             style={{
               position: "absolute",
@@ -1789,6 +1848,74 @@ const ChatBubbleComponent: React.FC<{
 // ============================================================================
 // OTHER LAYERS (Standard)
 // ============================================================================
+
+
+// ========== CURVED TEXT COMPONENT ==========
+const CurvedText: React.FC<{
+  text: string;
+  bend: number;
+  fontSize: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontColor: string;
+  letterSpacing?: number;
+  textShadow?: string;
+  width: number;
+  height: number;
+}> = ({ text, bend, fontSize, fontFamily, fontWeight, fontColor, letterSpacing, textShadow, width, height }) => {
+  const pathId = `curve-${Math.random().toString(36).substr(2, 9)}`;
+  const curveAmount = bend / 100;
+  
+  const svgWidth = width;
+  const svgHeight = height * 1.5;
+  const centerX = svgWidth / 2;
+  const baseY = svgHeight / 2;
+  const curveOffset = Math.abs(curveAmount) * height * 0.6;
+  
+  let pathD: string;
+  if (curveAmount > 0) {
+    // Arch up (smile)
+    pathD = `M 0,${baseY + curveOffset} Q ${centerX},${baseY - curveOffset} ${svgWidth},${baseY + curveOffset}`;
+  } else if (curveAmount < 0) {
+    // Arch down (frown)
+    pathD = `M 0,${baseY - curveOffset} Q ${centerX},${baseY + curveOffset} ${svgWidth},${baseY - curveOffset}`;
+  } else {
+    pathD = `M 0,${baseY} L ${svgWidth},${baseY}`;
+  }
+
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+      style={{ overflow: 'visible', position: 'absolute', inset: 0 }}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <path id={pathId} d={pathD} fill="none" />
+      </defs>
+      <text
+        fill={fontColor}
+        fontSize={fontSize}
+        fontFamily={resolveFontFamily(fontFamily)}
+        fontWeight={fontWeight}
+        letterSpacing={letterSpacing || 0}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{ 
+          filter: textShadow && textShadow !== 'none' 
+            ? `drop-shadow(${textShadow})` 
+            : undefined 
+        }}
+      >
+        <textPath href={`#${pathId}`} startOffset="50%">
+          {text}
+        </textPath>
+      </text>
+    </svg>
+  );
+};
+
 
 const TextLayerComponent: React.FC<{
   layer: TextLayer;
@@ -2020,6 +2147,10 @@ const TextLayerComponent: React.FC<{
   const highlightColor = layer.highlightColor || "rgba(255, 215, 0, 0.4)";
   const hasHighlights = layer.highlightWords && layer.highlightWords.length > 0;
 
+  // Calculate actual dimensions for curved text
+  const containerWidth = (layer.size.width / 100) * 1080; 
+  const containerHeight = (layer.size.height / 100) * 1920; 
+
   return (
     <div
       style={{
@@ -2029,22 +2160,39 @@ const TextLayerComponent: React.FC<{
         opacity: layer.opacity * entrance.opacity,
       }}
     >
-      {hasHighlights
-        ? words.map((word, i) => (
-            <React.Fragment key={i}>
-              <span
-                style={{
-                  backgroundColor: shouldHighlight(word) ? highlightColor : "transparent",
-                  padding: shouldHighlight(word) ? "2px 4px" : "0",
-                  borderRadius: shouldHighlight(word) ? "3px" : "0",
-                }}
-              >
-                {word}
-              </span>
-              {i < words.length - 1 && " "}
-            </React.Fragment>
-          ))
-        : layer.content}
+      {layer.textBend && layer.textBend !== 0 ? (
+        <CurvedText
+          text={layer.content}
+          bend={layer.textBend}
+          fontSize={scaledFontSize}
+          fontFamily={resolveFontFamily(layer.fontFamily)}
+          fontWeight={layer.fontWeight}
+          fontColor={layer.fontColor}
+          letterSpacing={layer.letterSpacing}
+          textShadow={layer.textShadow 
+            ? `${layer.shadowX}px ${layer.shadowY}px ${layer.shadowBlur}px ${layer.shadowColor}` 
+            : undefined}
+          width={containerWidth}
+          height={containerHeight}
+        />
+      ) : hasHighlights ? (
+        words.map((word, i) => (
+          <React.Fragment key={i}>
+            <span
+              style={{
+                backgroundColor: shouldHighlight(word) ? highlightColor : "transparent",
+                padding: shouldHighlight(word) ? "2px 4px" : "0",
+                borderRadius: shouldHighlight(word) ? "3px" : "0",
+              }}
+            >
+              {word}
+            </span>
+            {i < words.length - 1 && " "}
+          </React.Fragment>
+        ))
+      ) : (
+        layer.content
+      )}
     </div>
   );
 };
@@ -2070,6 +2218,18 @@ const ImageLayerComponent: React.FC<{
     const bgOpacity = interpolate(relativeFrame, [0, 60], [0, 1], {
       extrapolateRight: "clamp",
     });
+
+
+      if (layer.gradient) {
+    return (
+      <AbsoluteFill style={{ 
+        opacity: bgOpacity * layer.opacity,
+        background: layer.gradient,
+        filter: layer.filter,
+      }} />
+    );
+  }
+
     return (
       <AbsoluteFill style={{ opacity: bgOpacity * layer.opacity }}>
         <Img
@@ -2078,7 +2238,7 @@ const ImageLayerComponent: React.FC<{
             width: "100%",
             height: "100%",
             objectFit: layer.objectFit,
-            filter: layer.filter,
+            filter: buildAdjustmentFilter(layer.adjustments, layer.filter),
             ...cropStyle,
           }}
         />
@@ -2097,6 +2257,20 @@ const ImageLayerComponent: React.FC<{
         transform: `rotate(${rotation}deg) ${entrance.transform}`,
         transformOrigin: "center center",
         overflow: "hidden",
+        borderWidth: layer.borderWidth || 0,
+        borderStyle: layer.borderWidth ? "solid" : "none",
+        borderColor: layer.borderColor || "#ffffff",
+        borderRadius: layer.borderRadius || 0,
+        boxSizing: "border-box",
+        // Apply eraser mask to container
+        ...(layer.eraserMask ? {
+          WebkitMaskImage: `url(${layer.eraserMask})`,
+          maskImage: `url(${layer.eraserMask})`,
+          WebkitMaskSize: '100% 100%',
+          maskSize: '100% 100%',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+        } : {}),
       }}
     >
       <Img
@@ -2105,13 +2279,101 @@ const ImageLayerComponent: React.FC<{
           width: "100%",
           height: "100%",
           objectFit: layer.objectFit,
-          filter: layer.filter,
+          filter: buildAdjustmentFilter(layer.adjustments, layer.filter),
+          transform: `${layer.flipX ? 'scaleX(-1)' : ''} ${layer.flipY ? 'scaleY(-1)' : ''}`.trim() || undefined,
           ...cropStyle,
         }}
       />
     </div>
   );
 };
+
+
+
+const buildAdjustmentFilter = (adjustments?: {
+  brightness?: number;
+  contrast?: number;
+  saturation?: number;
+  temperature?: number;
+  tint?: number;
+  fade?: number;
+  highlights?: number;
+  shadows?: number;
+  vignette?: number;
+  blur?: number;
+}, existingFilter?: string): string => {
+  const filters: string[] = [];
+  
+  if (adjustments) {
+    let brightnessMultiplier = 1;
+    let contrastMultiplier = 1;
+    
+    const brightness = adjustments.brightness ?? 100;
+    if (brightness !== 100) {
+      brightnessMultiplier *= (brightness / 100);
+    }
+    
+    const highlights = adjustments.highlights ?? 0;
+    if (highlights !== 0) {
+      brightnessMultiplier *= (1 + highlights / 400);
+    }
+    
+    const fade = adjustments.fade ?? 0;
+    if (fade > 0) {
+      brightnessMultiplier *= (1 + fade / 400);
+      contrastMultiplier *= (1 - fade / 200);
+    }
+    
+    if (brightnessMultiplier !== 1) {
+      filters.push(`brightness(${brightnessMultiplier.toFixed(3)})`);
+    }
+    
+    const contrast = adjustments.contrast ?? 100;
+    if (contrast !== 100) {
+      contrastMultiplier *= (contrast / 100);
+    }
+    
+    const shadows = adjustments.shadows ?? 0;
+    if (shadows !== 0) {
+      contrastMultiplier *= (1 + shadows / 200);
+    }
+    
+    if (contrastMultiplier !== 1) {
+      filters.push(`contrast(${contrastMultiplier.toFixed(3)})`);
+    }
+    
+    const saturation = adjustments.saturation ?? 100;
+    if (saturation !== 100) {
+      filters.push(`saturate(${saturation / 100})`);
+    }
+    
+    const temperature = adjustments.temperature ?? 0;
+    if (temperature > 0) {
+      filters.push(`sepia(${temperature * 0.5}%)`);
+      filters.push(`saturate(${1 + temperature / 200})`);
+    } else if (temperature < 0) {
+      filters.push(`hue-rotate(${temperature * 2}deg)`);
+      filters.push(`saturate(${1 + Math.abs(temperature) / 300})`);
+    }
+    
+    const tint = adjustments.tint ?? 0;
+    if (tint !== 0) {
+      filters.push(`hue-rotate(${tint * 1.2}deg)`);
+    }
+    
+    const blur = adjustments.blur ?? 0;
+    if (blur > 0) {
+      filters.push(`blur(${blur}px)`);
+    }
+  }
+  
+  if (existingFilter && existingFilter !== 'none') {
+    filters.push(existingFilter);
+  }
+  
+  return filters.length > 0 ? filters.join(' ') : 'none';
+};
+
 
 const VideoLayerComponent: React.FC<{
   layer: VideoLayer;
@@ -2145,6 +2407,12 @@ const VideoLayerComponent: React.FC<{
         opacity: layer.opacity * entrance.opacity,
         transform: `rotate(${rotation}deg) ${entrance.transform}`,
         transformOrigin: "center center",
+        overflow: "hidden",
+        borderWidth: layer.borderWidth || 0,
+        borderStyle: layer.borderWidth ? "solid" : "none",
+        borderColor: layer.borderColor || "#ffffff",
+        borderRadius: layer.borderRadius || 0,
+        boxSizing: "border-box",
       }}
     >
       <Video
@@ -2156,12 +2424,396 @@ const VideoLayerComponent: React.FC<{
           width: "100%",
           height: "100%",
           objectFit: layer.objectFit,
-          filter: layer.filter,
+          filter: buildAdjustmentFilter(layer.adjustments, layer.filter),
+          transform: `${layer.flipX ? 'scaleX(-1)' : ''} ${layer.flipY ? 'scaleY(-1)' : ''}`.trim() || undefined,
         }}
       />
     </div>
   );
 };
+
+
+
+// ============================================================================
+// REDDIT CARD LAYER COMPONENT
+// ============================================================================
+
+const RedditCardRenderer: React.FC<{
+  layer: RedditCardLayer;
+  relativeFrame: number;
+  fps: number;
+}> = ({ layer, relativeFrame, fps }) => {
+  const {
+    subredditName = 'Advice',
+    posterUsername = 'throwaway',
+    timePosted = '1d ago',
+    upvotes = '2.9K',
+    commentCount = '1.8K',
+    awardsCount = '1',
+    avatarUrl,
+    title = 'Reddit Post Title',
+    text = 'Post preview text...',
+    position = { x: 50, y: 50 },
+    size = { width: 90, height: 45 },
+    titleFontSize = 38,
+    textFontSize = 24,
+    headerFontSize = 20,
+    metricsFontSize = 18,
+    textMaxLength = 280,
+    opacity = 1,
+    rotation = 0,
+  } = layer;
+
+  // Animation
+  const entrance = getEntranceAnimation(layer, relativeFrame, fps);
+
+  const iconSize = metricsFontSize + 2;
+  const avatarSize = headerFontSize * 2;
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: `${position.x - size.width / 2}%`,
+        top: `${position.y - size.height / 2}%`,
+        width: `${size.width}%`,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        opacity: opacity * entrance.opacity,
+        transform: `rotate(${rotation}deg) ${entrance.transform}`,
+        transformOrigin: "center center",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "white",
+          color: "#1a1a1b",
+          borderRadius: 16,
+          padding: "40px 48px",
+          maxWidth: "95%",
+          width: "100%",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+        }}
+      >
+        {/* Header Row */}
+        <div style={{ display: "flex", alignItems: "flex-start", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            {avatarUrl ? (
+              <img 
+                src={avatarUrl} 
+                alt="avatar"
+                style={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #FF4500 0%, #FF8717 100%)",
+                }}
+              />
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: headerFontSize, fontWeight: 700, color: "#1a1a1b" }}>
+                r/{subredditName}
+              </span>
+              <span style={{ fontSize: headerFontSize - 4, color: "#7c7c7c" }}>
+                u/{posterUsername} • {timePosted}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Title */}
+        <h1
+          style={{
+            fontSize: titleFontSize,
+            fontWeight: 600,
+            color: "#1a1a1b",
+            lineHeight: 1.3,
+            margin: "0 0 16px 0",
+          }}
+        >
+          {title}
+        </h1>
+
+        {/* Text Preview */}
+        <p
+          style={{
+            fontSize: textFontSize,
+            color: "#4a4a4a",
+            lineHeight: 1.5,
+            margin: 0,
+          }}
+        >
+          {text.slice(0, textMaxLength)}
+          {text.length > textMaxLength && "..."}
+        </p>
+
+        {/* Engagement Bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            marginTop: 28,
+            paddingTop: 20,
+          }}
+        >
+          {/* Upvote Pill */}
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 8,
+            backgroundColor: "#f6f7f8",
+            borderRadius: 24,
+            padding: "10px 16px",
+          }}>
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="#576f76" strokeWidth="2.5">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
+            <span style={{ fontSize: metricsFontSize, fontWeight: 600, color: "#1a1a1b" }}>{upvotes}</span>
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="#576f76" strokeWidth="2.5">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </div>
+
+          {/* Comments Pill */}
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 8,
+            backgroundColor: "#f6f7f8",
+            borderRadius: 24,
+            padding: "10px 16px",
+          }}>
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="#576f76" strokeWidth="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <span style={{ fontSize: metricsFontSize, fontWeight: 500, color: "#576f76" }}>{commentCount}</span>
+          </div>
+
+          {/* Awards Pill */}
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 6,
+            backgroundColor: "#f6f7f8",
+            borderRadius: 24,
+            padding: "10px 16px",
+          }}>
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="#FFD700">
+              <circle cx="12" cy="9" r="6" fill="#FFD700"/>
+              <path d="M8 15l-2 6 6-3 6 3-2-6" fill="#FFD700"/>
+            </svg>
+            <span style={{ fontSize: metricsFontSize, fontWeight: 500, color: "#576f76" }}>{awardsCount}</span>
+          </div>
+
+          {/* Share Pill */}
+          <div style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: 8,
+            backgroundColor: "#f6f7f8",
+            borderRadius: 24,
+            padding: "10px 16px",
+          }}>
+            <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="#576f76" strokeWidth="2">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+              <polyline points="16 6 12 2 8 6"/>
+              <line x1="12" y1="2" x2="12" y2="15"/>
+            </svg>
+            <span style={{ fontSize: metricsFontSize, fontWeight: 500, color: "#576f76" }}>Share</span>                       
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// REDDIT STORY LAYER COMPONENT (Karaoke Text)
+// ============================================================================
+
+const RedditStoryRenderer: React.FC<{
+  layer: RedditStoryLayer;
+  relativeFrame: number;
+  fps: number;
+}> = ({ layer, relativeFrame, fps }) => {
+  const frame = useCurrentFrame();
+  
+  const {
+    words = [],
+    fontSize = 48,
+    fontFamily = 'Montserrat, sans-serif',
+    fontColor = '#ffffff',
+    sentenceBgColor = '#FF4500',
+    story = '',
+    position = { x: 50, y: 50 },
+    size = { width: 90, height: 60 },
+    opacity = 1,
+    rotation = 0,
+  } = layer;
+
+  // Animation
+  const entrance = getEntranceAnimation(layer, relativeFrame, fps);
+
+  // If no words, show static text
+  if (!words || words.length === 0) {
+    const maxChars = 400;
+    const displayText = story.slice(0, maxChars);
+
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: `${position.x - size.width / 2}%`,
+          top: `${position.y - size.height / 2}%`,
+          width: `${size.width}%`,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          opacity: opacity * entrance.opacity,
+          transform: `rotate(${rotation}deg) ${entrance.transform}`,
+          transformOrigin: "center center",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "rgba(0,0,0,0.6)",
+            borderRadius: 20,
+            padding: "40px 50px",
+            width: "100%",
+          }}
+        >
+          <p
+            style={{
+              fontSize: fontSize,
+              fontFamily: resolveFontFamily(fontFamily),
+              fontWeight: 700,
+              color: fontColor,
+              textAlign: "center",
+              lineHeight: 1.5,
+              margin: 0,
+              textShadow: "0 2px 8px rgba(0,0,0,0.8)",
+            }}
+          >
+            {displayText}
+            {story.length > maxChars && "..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Karaoke mode - word by word highlighting
+  // Calculate relative frame within this layer's sequence
+  const layerRelativeFrame = frame - layer.startFrame;
+  
+  const wordsPerLine = 8;
+  const lines: (typeof words)[] = [];
+  for (let i = 0; i < words.length; i += wordsPerLine) {
+    lines.push(words.slice(i, i + wordsPerLine));
+  }
+
+  // Group lines into blocks of 2
+  const lineBlocks: (typeof words)[][] = [];
+  for (let i = 0; i < lines.length; i += 2) {
+    lineBlocks.push(lines.slice(i, i + 2));
+  }
+
+  // Find active block based on relative frame
+  const activeBlockIndex = lineBlocks.findIndex((block) => {
+    if (!block[0] || !block[0][0]) return false;
+    const startFrame = Math.floor(block[0][0].start * fps);
+    const lastLine = block[block.length - 1];
+    if (!lastLine || !lastLine[lastLine.length - 1]) return false;
+    const endFrame = Math.floor(lastLine[lastLine.length - 1].end * fps);
+    return layerRelativeFrame >= startFrame && layerRelativeFrame <= endFrame;
+  });
+
+  if (activeBlockIndex === -1) return null;
+  const activeBlock = lineBlocks[activeBlockIndex];
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: `${position.x - size.width / 2}%`,
+        top: `${position.y - size.height / 2}%`,
+        width: `${size.width}%`,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        opacity: opacity * entrance.opacity,
+        transform: `rotate(${rotation}deg) ${entrance.transform}`,
+        transformOrigin: "center center",
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: "rgba(0,0,0,0.6)",
+          borderRadius: 20,
+          padding: "40px 50px",
+          textAlign: "center",
+          color: fontColor,
+          fontSize: fontSize,
+          fontFamily: resolveFontFamily(fontFamily),
+          fontWeight: 700,
+          lineHeight: 1.6,
+          textShadow: "2px 2px 8px rgba(0,0,0,0.8)",
+          width: "100%",
+        }}
+      >
+        {activeBlock.map((line, li) => (
+          <p
+            key={li}
+            style={{
+              margin: "8px 0",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "12px",
+            }}
+          >
+            {line.map((w, i) => {
+              const wordStartFrame = Math.floor(w.start * fps);
+              if (layerRelativeFrame < wordStartFrame) return null;
+
+              const wordEndFrame = Math.floor(w.end * fps);
+              const isCurrentWord = layerRelativeFrame >= wordStartFrame && layerRelativeFrame < wordEndFrame;
+
+              return (
+                <span
+                  key={i}
+                  style={{
+                    backgroundColor: isCurrentWord ? sentenceBgColor : "transparent",
+                    padding: isCurrentWord ? "4px 10px" : "4px 0",
+                    borderRadius: isCurrentWord ? "6px" : undefined,
+                    display: "inline-block",
+                    transition: "all 0.1s ease",
+                  }}
+                >
+                  {w.word}
+                </span>
+              );
+            })}
+          </p>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
 // ============================================================================
 // MAIN COMPOSITION
 // ============================================================================
@@ -2319,6 +2971,9 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
       {/* Normal Layer Rendering (All other templates OR editing mode) */}
       {(templateId !== 8 || editingLayerId) &&
         visibleLayers.map(({ layer }) => {
+          // if (layer.type === 'reddit-card' || layer.type === 'reddit-story') {
+          //   return null;
+          // }
           const relativeFrame = Math.max(0, frame - layer.startFrame);
 
           if (
@@ -2367,8 +3022,70 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
                 fps={fps}
               />
             );
+
+
+          if (isRedditCardLayer(layer))
+            return (
+              <RedditCardRenderer
+                key={layer.id}
+                layer={layer}
+                relativeFrame={relativeFrame}
+                fps={fps}
+              />
+            );
+          if (isRedditStoryLayer(layer))
+            return (
+              <RedditStoryRenderer
+                key={layer.id}
+                layer={layer}
+                relativeFrame={relativeFrame}
+                fps={fps}
+              />
+            );
+
           return null;
         })}
+
+      {/* Fake Chat Conversation Container */}
+      {/* {activeChatStyle === "fakechatconversation" && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: "25%",
+            display: "flex",
+            flexDirection: "column-reverse",
+            justifyContent: "flex-end",
+            gap: 12,
+            padding: "0 40px",
+            maxHeight: "70%",
+            overflowY: "auto",
+            zIndex: 10,
+          }}
+        >
+          {[...layers]
+            .filter((layer): layer is ChatBubbleLayer => 
+              isChatBubbleLayer(layer) && 
+              layer.chatStyle === "fakechatconversation" &&
+              layer.visible &&
+              frame >= layer.startFrame &&
+              frame <= layer.endFrame
+            )
+            .reverse()
+            .map((layer) => {
+              const relativeFrame = Math.max(0, frame - layer.startFrame);
+              return (
+                <ChatBubbleComponent
+                  key={layer.id}
+                  layer={layer}
+                  relativeFrame={relativeFrame}
+                  fps={fps}
+                />
+              );
+            })}
+        </div>
+      )} */}
 
       {/* Chat Interface Overlay */}
       {(templateId === 9 || activeChatStyle) &&
@@ -2385,7 +3102,11 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
       {layers
         .filter(
           (l): l is AudioLayer =>
-            l.type === "audio" && l.visible && l.id !== editingLayerId
+            l.type === "audio" && 
+            l.visible && 
+            l.id !== editingLayerId &&
+            Boolean((l as AudioLayer).src) &&       
+            (l as AudioLayer).src.trim() !== ''         
         )
         .map((layer) => (
           <Sequence
@@ -2402,7 +3123,6 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
     </AbsoluteFill>
   );
 };
-
 // export default DynamicLayerComposition;
 
 export const DynamicTemplate: React.FC<{
