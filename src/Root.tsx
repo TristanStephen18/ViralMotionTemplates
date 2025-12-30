@@ -60,8 +60,8 @@ const exampleLayers: Layer[] = [
     size: { width: 80, height: 20 },
     rotation: 0,
     opacity: 1,
-    content: "Hello World",
-    fontFamily: "Arial, sans-serif",
+    content: "Roboto, sans-serif",
+    fontFamily: "Roboto, sans-serif",
     fontSize: 10,
     fontColor: "#ffffff",
     fontWeight: "bold",
@@ -431,6 +431,7 @@ export const RemotionRoot: React.FC = () => {
             layers: exampleLayers,
             backgroundColor: "#000000",
             duration: 10,
+            templateId: 1,
           },
         }}
         calculateMetadata={({ props }) => {
