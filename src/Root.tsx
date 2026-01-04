@@ -28,7 +28,7 @@ import { LogoCompositionComponent } from "./components/LogoAnimation";
 import * as defaultValues from "./defaultvalues";
 import { TestTextComposition } from "./components/SampleTemplate";
 import { DynamicTemplate, Layer } from "./components/DynamicLayerComposition";
-import ExtendedLayerComposition, {
+import {
   ExtendedDynamicComposition,
 } from "./components/ExtendedComposition";
 
@@ -619,7 +619,7 @@ export const RemotionRoot: React.FC = () => {
             backgroundColor: "#000000",
             duration: 10,
             templateId: 1,
-            addWatermark: true
+            addWatermark: true,
           },
         }}
         calculateMetadata={({ props }) => {
@@ -639,7 +639,21 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1080}
         height={1920}
-        defaultProps={{ config: { layers: exampleLayersExtended, addWatermark: true } }}
+        defaultProps={{
+          config: {
+            layers: exampleLayersExtended,
+            addWatermark: true,
+            duration: 10,
+          },
+        }}
+        calculateMetadata={({ props }) => {
+          const duration = props.config?.duration ?? 10; // fallback to 10 seconds
+          const fps = 30;
+
+          return {
+            durationInFrames: duration * fps,
+          };
+        }}
       />
     </>
   );
