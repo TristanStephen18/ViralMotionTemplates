@@ -619,6 +619,7 @@ export const RemotionRoot: React.FC = () => {
             backgroundColor: "#000000",
             duration: 10,
             templateId: 1,
+            addWatermark: true
           },
         }}
         calculateMetadata={({ props }) => {
@@ -638,7 +639,7 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1080}
         height={1920}
-        defaultProps={{ config: { layers: exampleLayersExtended } }}
+        defaultProps={{ config: { layers: exampleLayersExtended, addWatermark: true } }}
       />
     </>
   );

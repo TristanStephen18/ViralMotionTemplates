@@ -371,6 +371,7 @@ export interface ExtendedCompositionProps {
   backgroundColor?: string;
   editingLayerId?: string | null;
   templateId?: number;
+  addWatermark?: boolean; // ✅ ADD THIS
   globalStyles?: {
     fontSizeTitle?: number;
     fontSizeSubtitle?: number;
@@ -379,6 +380,7 @@ export interface ExtendedCompositionProps {
     fontColorTitle?: string;
     fontColorSubtitle?: string;
   };
+  duration?: number;
 }
 
 // ============================================================================
@@ -786,6 +788,7 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
   backgroundColor = "#000000",
   editingLayerId,
   globalStyles,
+  addWatermark = false, // ✅ ADD THIS
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -873,9 +876,42 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
             <Audio src={layer.src} volume={layer.volume} />
           </Sequence>
         ))}
+
+      {/* Watermark for Free Plan Users */}
+      {addWatermark && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 40,
+            right: 40,
+            zIndex: 9999,
+            opacity: 0.7,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 16px",
+            background: "rgba(0, 0, 0, 0.5)",
+            borderRadius: 8,
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <span
+            style={{
+              color: "#ffffff",
+              fontSize: 50,
+              fontWeight: 600,
+              fontFamily: "system-ui, sans-serif",
+              letterSpacing: "0.5px",
+            }}
+          >
+            Made with ViralMotion
+          </span>
+        </div>
+      )}
     </AbsoluteFill>
   );
 };
+
 
 export const ExtendedDynamicComposition: React.FC<{
   config: ExtendedCompositionProps
