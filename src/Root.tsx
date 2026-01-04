@@ -28,50 +28,237 @@ import { LogoCompositionComponent } from "./components/LogoAnimation";
 import * as defaultValues from "./defaultvalues";
 import { TestTextComposition } from "./components/SampleTemplate";
 import { DynamicTemplate, Layer } from "./components/DynamicLayerComposition";
+import ExtendedLayerComposition, {
+  ExtendedDynamicComposition,
+} from "./components/ExtendedComposition";
 
 type Derived = React.ComponentProps<typeof ChatVideo2>;
 
 const exampleLayers: Layer[] = [
   {
-    id: "bg-1",
-    name: "Background",
+    id: "upper-panel",
+    type: "video",
+    name: "Upper Panel",
+    startFrame: 0,
+    endFrame: 600,
+    visible: true,
+    locked: false,
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    position: { x: 50, y: 25 },
+    size: { width: 100, height: 50 },
+    rotation: 0,
+    opacity: 1,
+    volume: 0.5,
+    loop: true,
+    playbackRate: 1,
+    objectFit: "cover",
+    animation: { entrance: "none", entranceDuration: 0 },
+  },
+  {
+    id: "lower-panel",
+    type: "video",
+    name: "Lower Panel",
+    startFrame: 0,
+    endFrame: 600,
+    visible: true,
+    locked: false,
+    src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    position: { x: 50, y: 75 },
+    size: { width: 100, height: 50 },
+    rotation: 0,
+    opacity: 1,
+    volume: 0.5,
+    loop: true,
+    playbackRate: 1,
+    objectFit: "cover",
+    animation: { entrance: "none", entranceDuration: 0 },
+  },
+];
+
+const exampleLayersExtended: any[] = [
+  {
+    id: "background",
     type: "image",
+    name: "Background",
     visible: true,
     locked: false,
     startFrame: 0,
-    endFrame: 300,
+    endFrame: 900,
     position: { x: 50, y: 50 },
     size: { width: 100, height: 100 },
     rotation: 0,
     opacity: 1,
-    src: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920",
+    src: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1080&q=80",
     isBackground: true,
     objectFit: "cover",
+    filter: "brightness(0.7)",
   },
   {
-    id: "text-1",
-    name: "Title",
-    type: "text",
+    id: "fact-card-0",
+    type: "fact-card",
+    name: "Intro Card",
     visible: true,
     locked: false,
-    startFrame: 30,
-    endFrame: 300,
-    position: { x: 50, y: 30 },
-    size: { width: 80, height: 20 },
+    startFrame: 0,
+    endFrame: 180,
+    position: { x: 50, y: 50 },
+    size: { width: 80, height: 40 },
     rotation: 0,
     opacity: 1,
-    content: "Roboto, sans-serif",
-    fontFamily: "Roboto, sans-serif",
-    fontSize: 10,
-    fontColor: "#ffffff",
-    fontWeight: "bold",
-    fontStyle: "normal",
-    textAlign: "center",
-    lineHeight: 1.2,
-    animation: {
-      entrance: "slideUp",
-      entranceDuration: 30,
+    title: "5 Amazing Facts",
+    subtitle: "You Won't Believe!",
+    isIntro: true,
+    isOutro: false,
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      borderRadius: 25,
+      blur: 20,
     },
+    titleStyle: {
+      fontSize: 48,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    subtitleStyle: {
+      fontSize: 24,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    animation: { entrance: "bounce", entranceDuration: 18 },
+  },
+  {
+    id: "fact-card-1",
+    type: "fact-card",
+    name: "Fact 1",
+    visible: true,
+    locked: false,
+    startFrame: 180,
+    endFrame: 360,
+    position: { x: 50, y: 50 },
+    size: { width: 80, height: 40 },
+    rotation: 0,
+    opacity: 1,
+    title: "Did You Know?",
+    description: "The first computer programmer was Ada Lovelace in the 1840s.",
+    isIntro: false,
+    isOutro: false,
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      borderRadius: 25,
+      blur: 20,
+    },
+    titleStyle: {
+      fontSize: 48,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    subtitleStyle: {
+      fontSize: 24,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    animation: { entrance: "slideUp", entranceDuration: 18 },
+  },
+  {
+    id: "fact-card-2",
+    type: "fact-card",
+    name: "Fact 2",
+    visible: true,
+    locked: false,
+    startFrame: 360,
+    endFrame: 540,
+    position: { x: 50, y: 50 },
+    size: { width: 80, height: 40 },
+    rotation: 0,
+    opacity: 1,
+    title: "Amazing Fact",
+    description:
+      "Honey never spoils. Archaeologists found 3000-year-old honey still edible!",
+    isIntro: false,
+    isOutro: false,
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      borderRadius: 25,
+      blur: 20,
+    },
+    titleStyle: {
+      fontSize: 48,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    subtitleStyle: {
+      fontSize: 24,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    animation: { entrance: "slideUp", entranceDuration: 18 },
+  },
+  {
+    id: "fact-card-3",
+    type: "fact-card",
+    name: "Fact 3",
+    visible: true,
+    locked: false,
+    startFrame: 540,
+    endFrame: 720,
+    position: { x: 50, y: 50 },
+    size: { width: 80, height: 40 },
+    rotation: 0,
+    opacity: 1,
+    title: "Mind Blowing",
+    description:
+      "There are more stars in the universe than grains of sand on Earth.",
+    isIntro: false,
+    isOutro: false,
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      borderRadius: 25,
+      blur: 20,
+    },
+    titleStyle: {
+      fontSize: 48,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    subtitleStyle: {
+      fontSize: 24,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    animation: { entrance: "slideUp", entranceDuration: 18 },
+  },
+  {
+    id: "fact-card-4",
+    type: "fact-card",
+    name: "Outro Card",
+    visible: true,
+    locked: false,
+    startFrame: 720,
+    endFrame: 900,
+    position: { x: 50, y: 50 },
+    size: { width: 80, height: 40 },
+    rotation: 0,
+    opacity: 1,
+    title: "Thanks for Watching!",
+    subtitle: "Like & Subscribe",
+    isIntro: false,
+    isOutro: true,
+    cardStyle: {
+      backgroundColor: "rgba(255, 255, 255, 0.15)",
+      borderRadius: 25,
+      blur: 20,
+    },
+    titleStyle: {
+      fontSize: 48,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    subtitleStyle: {
+      fontSize: 24,
+      fontFamily: "Inter, sans-serif",
+      fontColor: "#FFFFFF",
+    },
+    animation: { entrance: "bounce", entranceDuration: 18 },
   },
 ];
 
@@ -442,6 +629,16 @@ export const RemotionRoot: React.FC = () => {
             durationInFrames: duration * fps,
           };
         }}
+      />
+
+      <Composition
+        id="ExtendedDynamicComposition"
+        component={ExtendedDynamicComposition}
+        durationInFrames={300}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={{ config: { layers: exampleLayersExtended } }}
       />
     </>
   );
