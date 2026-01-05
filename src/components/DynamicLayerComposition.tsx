@@ -445,6 +445,7 @@ export interface DynamicCompositionProps {
   templateId?: number;
   addWatermark?: boolean;
   duration?: number;
+  size?: string;
 }
 
 export interface CropData {
@@ -3300,7 +3301,7 @@ export const DynamicLayerComposition: React.FC<DynamicCompositionProps> = ({
               color: "#ffffff",
               fontSize: 50,
               fontWeight: 600,
-              fontFamily: "system-ui, sans-serif",
+              fontFamily: resolveFontFamily("Open Sans, sans-serif"),
               letterSpacing: "0.5px",
             }}
           >

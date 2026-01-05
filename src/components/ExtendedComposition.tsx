@@ -381,6 +381,7 @@ export interface ExtendedCompositionProps {
     fontColorSubtitle?: string;
   };
   duration?: number;
+  size?: string;
 }
 
 // ============================================================================
@@ -900,7 +901,7 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
               color: "#ffffff",
               fontSize: 50,
               fontWeight: 600,
-              fontFamily: "system-ui, sans-serif",
+              fontFamily: resolveFontFamily("Open Sans, sans-serif"),
               letterSpacing: "0.5px",
             }}
           >
