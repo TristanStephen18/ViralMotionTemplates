@@ -28,9 +28,7 @@ import { LogoCompositionComponent } from "./components/LogoAnimation";
 import * as defaultValues from "./defaultvalues";
 import { TestTextComposition } from "./components/SampleTemplate";
 import { DynamicTemplate, Layer } from "./components/DynamicLayerComposition";
-import {
-  ExtendedDynamicComposition,
-} from "./components/ExtendedComposition";
+import { ExtendedDynamicComposition } from "./components/ExtendedComposition";
 
 type Derived = React.ComponentProps<typeof ChatVideo2>;
 
@@ -620,14 +618,32 @@ export const RemotionRoot: React.FC = () => {
             duration: 10,
             templateId: 1,
             addWatermark: true,
+            aspectRatio: "9:16",
           },
         }}
         calculateMetadata={({ props }) => {
           const duration = props.config?.duration ?? 10; // fallback to 10 seconds
           const fps = 30;
+          const aspectRatio = props.config?.aspectRatio ?? "9:16";
+
+          // Define dimensions for each aspect ratio
+          const dimensions: Record<
+            "9:16" | "16:9" | "1:1",
+            { width: number; height: number }
+          > = {
+            "9:16": { width: 1080, height: 1920 }, // Vertical/Portrait
+            "16:9": { width: 1920, height: 1080 }, // Horizontal/Landscape
+            "1:1": { width: 1080, height: 1080 }, // Square
+          };
+
+          const { width, height } =
+            dimensions[aspectRatio as "9:16" | "16:9" | "1:1"];
 
           return {
             durationInFrames: duration * fps,
+            width,
+            height,
+            fps,
           };
         }}
       />
@@ -644,14 +660,32 @@ export const RemotionRoot: React.FC = () => {
             layers: exampleLayersExtended,
             addWatermark: true,
             duration: 10,
+            aspectRatio: "1:1",
           },
         }}
         calculateMetadata={({ props }) => {
           const duration = props.config?.duration ?? 10; // fallback to 10 seconds
           const fps = 30;
+          const aspectRatio = props.config?.aspectRatio ?? "9:16";
+
+          // Define dimensions for each aspect ratio
+          const dimensions: Record<
+            "9:16" | "16:9" | "1:1",
+            { width: number; height: number }
+          > = {
+            "9:16": { width: 1080, height: 1920 }, // Vertical/Portrait
+            "16:9": { width: 1920, height: 1080 }, // Horizontal/Landscape
+            "1:1": { width: 1080, height: 1080 }, // Square
+          };
+
+          const { width, height } =
+            dimensions[aspectRatio as "9:16" | "16:9" | "1:1"];
 
           return {
             durationInFrames: duration * fps,
+            width,
+            height,
+            fps,
           };
         }}
       />

@@ -445,7 +445,7 @@ export interface DynamicCompositionProps {
   templateId?: number;
   addWatermark?: boolean;
   duration?: number;
-  size?: string;
+  aspectRatio?: string;
 }
 
 export interface CropData {

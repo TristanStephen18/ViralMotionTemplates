@@ -381,7 +381,7 @@ export interface ExtendedCompositionProps {
     fontColorSubtitle?: string;
   };
   duration?: number;
-  size?: string;
+  aspectRatio?: string;
 }
 
 // ============================================================================
