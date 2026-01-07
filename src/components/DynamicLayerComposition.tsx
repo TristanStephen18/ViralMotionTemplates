@@ -447,6 +447,8 @@ export interface DynamicCompositionProps {
   editingLayerId?: string | null;
   templateId?: number;
   addWatermark?: boolean;
+  duration?: number;
+  aspectRatio?: string;
 }
 
 export interface CropData {
