@@ -221,7 +221,6 @@ function resolveFontFamily(propsFontFamily: string) {
 // ============================================================================
 // BASE LAYER TYPES - Matching DynamicLayerComposition
 // ============================================================================
-
 export interface LayerBase {
   id: string;
   name: string;
@@ -293,6 +292,7 @@ export interface VideoLayer extends LayerBase {
   type: "video";
   src: string;
   volume: number;
+  muted?: boolean;
   loop?: boolean;
   playbackRate?: number;
   objectFit?: "cover" | "contain" | "fill";
@@ -308,6 +308,7 @@ export interface AudioLayer extends LayerBase {
   type: "audio";
   src: string;
   volume: number;
+  muted?: boolean;
   loop?: boolean;
   fadeIn?: number;
   fadeOut?: number;
@@ -380,8 +381,6 @@ export interface ExtendedCompositionProps {
     fontColorTitle?: string;
     fontColorSubtitle?: string;
   };
-  duration?: number;
-  aspectRatio?: string;
 }
 
 // ============================================================================
@@ -560,7 +559,7 @@ const VideoLayerComponent: React.FC<{
     >
       <Video
         src={layer.src}
-        volume={layer.volume}
+        volume={layer.muted ? 0 : layer.volume}
         loop={layer.loop}
         playbackRate={layer.playbackRate || 1}
         style={{
@@ -874,7 +873,7 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
             from={layer.startFrame}
             durationInFrames={layer.endFrame - layer.startFrame}
           >
-            <Audio src={layer.src} volume={layer.volume} />
+            <Audio src={layer.src} volume={layer.muted ? 0 : layer.volume} />
           </Sequence>
         ))}
 
@@ -899,7 +898,7 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
           <span
             style={{
               color: "#ffffff",
-              fontSize: 50,
+              fontSize: 18,
               fontWeight: 600,
               fontFamily: resolveFontFamily("Open Sans, sans-serif"),
               letterSpacing: "0.5px",
