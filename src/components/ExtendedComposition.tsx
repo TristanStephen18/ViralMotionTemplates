@@ -900,7 +900,7 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
           <span
             style={{
               color: "#ffffff",
-              fontSize: 18,
+              fontSize: 50,
               fontWeight: 600,
               fontFamily: resolveFontFamily("Open Sans, sans-serif"),
               letterSpacing: "0.5px",
