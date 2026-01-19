@@ -221,6 +221,7 @@ function resolveFontFamily(propsFontFamily: string) {
 // ============================================================================
 // BASE LAYER TYPES - Matching DynamicLayerComposition
 // ============================================================================
+
 export interface LayerBase {
   id: string;
   name: string;
@@ -869,44 +870,79 @@ export const ExtendedLayerComposition: React.FC<ExtendedCompositionProps> = ({
             Boolean((l as AudioLayer).src) &&
             (l as AudioLayer).src.trim() !== ""
         )
-        .map((layer) => (
-          <Sequence
-            key={layer.id}
-            from={layer.startFrame}
-            durationInFrames={layer.endFrame - layer.startFrame}
-          >
-            <Audio src={layer.src} volume={layer.muted ? 0 : layer.volume} />
-          </Sequence>
-        ))}
+        .map((layer) => {
+  const duration = layer.endFrame - layer.startFrame;
+  const fadeInFrames = (layer.fadeIn || 0) * fps;
+  const fadeOutFrames = (layer.fadeOut || 0) * fps;
+  
+  const getVolume = (frame: number): number => {
+    if (layer.muted) return 0;
+    
+    let vol = layer.volume;
+    
+    if (fadeInFrames && frame < fadeInFrames) {
+      vol = interpolate(frame, [0, fadeInFrames], [0, layer.volume], {
+        extrapolateRight: "clamp",
+      });
+    }
+    
+    if (fadeOutFrames && frame > duration - fadeOutFrames) {
+      vol = interpolate(frame, [duration - fadeOutFrames, duration], [layer.volume, 0], {
+        extrapolateLeft: "clamp",
+      });
+    }
+    
+    return vol;
+  };
 
-      {/* Watermark for Free Plan Users */}
+  return (
+    <Sequence
+      key={layer.id}
+      from={layer.startFrame}
+      durationInFrames={duration}
+    >
+      <Audio src={layer.src} volume={getVolume} />
+    </Sequence>
+  );
+})}
+
+{/* Watermark for Free Plan Users */}
       {addWatermark && (
         <div
           style={{
             position: "absolute",
-            bottom: 40,
-            right: 40,
+            bottom: 30,
+            right: 30,
             zIndex: 9999,
-            opacity: 0.7,
+            opacity: 0.5,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
-            gap: 8,
-            padding: "8px 16px",
-            background: "rgba(0, 0, 0, 0.5)",
-            borderRadius: 8,
-            backdropFilter: "blur(4px)",
+            gap: 4,
+            pointerEvents: "none",
           }}
         >
+          <Img 
+            src="https://res.cloudinary.com/dptlyosrg/image/upload/v1766760544/viralmotionlogo_faewfk.png" 
+            alt="ViralMotion" 
+            style={{
+              width: 40,
+              height: 40,
+              objectFit: "contain",
+            }}
+          />
           <span
             style={{
               color: "#ffffff",
-              fontSize: 50,
-              fontWeight: 600,
-              fontFamily: resolveFontFamily("Open Sans, sans-serif"),
-              letterSpacing: "0.5px",
+              fontSize: 12,
+              fontWeight: 300,
+              fontFamily:  resolveFontFamily("Open Sans, sans-serif"),
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              textShadow: "1px 1px 2px rgba(0,0,0,0.7)",
             }}
           >
-            Made with ViralMotion
+            ViralMotion
           </span>
         </div>
       )}
